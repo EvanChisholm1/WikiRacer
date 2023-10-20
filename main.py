@@ -19,6 +19,9 @@ def get_links(current_link):
         if title is None:
             continue
 
+        if href.startswith('http'):
+            continue
+
         possible_pages.append((title, href))
 
     return possible_pages
@@ -37,14 +40,17 @@ def get_next_page(current_link, target_href, target_embedding, visited):
     best_link = ""
     best_title = ""
 
-    for title, link in possible_pages:
+    titles = [title for title, _ in possible_pages]
+    embeddings = model.encode(titles)
+
+    for (title, link), embedding in zip(possible_pages, embeddings):
         if link == target_href:
             return title, link
 
         if title in visited:
             continue
 
-        sim = calculate_similarity(target_embedding, model.encode(title))
+        sim = calculate_similarity(target_embedding, embedding)
         if sim > most_similar:
             most_similar = sim
             best_link = link
@@ -74,7 +80,7 @@ def speedrun(start_url, end_url):
     distance = 1
     
     while True:
-        print("At:", title)
+        print("At:", title, link)
 
         if title == end_title:
             print("finished in", distance, "moves")
